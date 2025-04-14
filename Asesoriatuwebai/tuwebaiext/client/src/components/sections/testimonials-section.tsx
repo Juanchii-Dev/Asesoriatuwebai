@@ -1,6 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-// Temporalmente comentamos framer-motion para resolver problemas de dependencias
-// import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import AnimatedShape from '../ui/animated-shape';
 import TestimonialForm from '../ui/testimonial-form';
@@ -40,9 +39,14 @@ function TestimonialCard({ name, company, testimonial, delay, isNew, avatar }: T
   };
 
   return (
-    <div 
+    <motion.div 
       ref={ref as React.RefObject<HTMLDivElement>}
-      className={`bg-glass rounded-xl p-6 relative border border-gray-800 shadow-lg mx-2 ${isNew ? 'ring-2 ring-[#00CCFF]' : ''} hover:-translate-y-1 hover:shadow-[0_10px_25px_-5px_rgba(0,204,255,0.2),_0_10px_10px_-5px_rgba(153,51,255,0.2)] transition-all duration-300`}
+      className={`bg-glass rounded-xl p-6 relative border border-gray-800 shadow-lg mx-2 ${isNew ? 'ring-2 ring-[#00CCFF]' : ''}`}
+      initial="hidden"
+      animate={hasIntersected ? "visible" : "hidden"}
+      variants={cardVariants}
+      whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(0, 204, 255, 0.2), 0 10px 10px -5px rgba(153, 51, 255, 0.2)' }}
+      transition={{ duration: 0.3 }}
     >
       {isNew && (
         <div className="absolute -top-3 -right-3 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] text-white text-xs px-2 py-1 rounded-full">
@@ -89,7 +93,7 @@ function TestimonialCard({ name, company, testimonial, delay, isNew, avatar }: T
           <div className="h-1 w-12 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] rounded-full"></div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -214,9 +218,12 @@ export default function TestimonialsSection({ setRef }: TestimonialsSectionProps
       <AnimatedShape type={2} className="bottom-[10%] left-[-100px]" delay={3} />
       
       <div className="container mx-auto px-4 py-16 z-10">
-        <div 
+        <motion.div 
           ref={titleRef as React.RefObject<HTMLDivElement>}
           className="text-center mb-16"
+          initial="hidden"
+          animate={titleVisible ? "visible" : "hidden"}
+          variants={titleVariants}
         >
           <h2 className="font-rajdhani font-bold text-3xl md:text-5xl mb-6">
             <span className="gradient-text gradient-border inline-block pb-2">Lo que dicen nuestros clientes</span>

@@ -2,8 +2,7 @@ import { useRef, useEffect } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-// Temporalmente comentamos framer-motion para resolver problemas de dependencias
-// import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
 interface CompanyLogoSliderProps {
@@ -122,9 +121,12 @@ export default function CompanyLogoSlider({ className = '' }: CompanyLogoSliderP
   };
 
   return (
-    <div
+    <motion.div
       ref={ref as React.RefObject<HTMLDivElement>}
       className={`w-full py-8 ${className}`}
+      initial="hidden"
+      animate={hasIntersected ? "visible" : "hidden"}
+      variants={containerVariants}
     >
       <div className="max-w-6xl mx-auto px-4">
         <Slider ref={sliderRef} {...settings} className="company-logo-slider">
@@ -140,6 +142,6 @@ export default function CompanyLogoSlider({ className = '' }: CompanyLogoSliderP
           ))}
         </Slider>
       </div>
-    </div>
+    </motion.div>
   );
 }

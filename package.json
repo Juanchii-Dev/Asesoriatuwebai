@@ -10,6 +10,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "framer-motion": "^12.7.2"
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "framer-motion": "^12.7.2",
+    "openai": "^4.94.0",
+    "react-slick": "^0.30.3",
+    "slick-carousel": "^1.8.1"
   }
 }

@@ -4,15 +4,12 @@
   "description": "This is a configured Replit project for running the [TuWebAI Extension](https://github.com/Juanchii-Dev/tuwebaiext.git).",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "cd tuwebaiext && npm run dev"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0",
-    "framer-motion": "^12.7.2",
-    "openai": "^4.94.0"
+    "openai": "^4.93.0"
   }
 }

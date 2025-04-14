@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 
 interface TestimonialFormProps {
@@ -62,34 +63,46 @@ export default function TestimonialForm({ onAddTestimonial }: TestimonialFormPro
 
   return (
     <>
-      <button
+      <motion.button
         onClick={() => setIsOpen(true)}
-        className="mt-8 mx-auto bg-gradient-to-r from-[#00CCFF] to-[#9933FF] text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 hover:scale-105"
+        className="mt-8 mx-auto bg-gradient-to-r from-[#00CCFF] to-[#9933FF] text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
+        whileHover={{ scale: 1.05, boxShadow: '0 10px 25px -5px rgba(0, 204, 255, 0.3)' }}
+        whileTap={{ scale: 0.95 }}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
           <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
           <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
         </svg>
         <span>Dejar testimonio</span>
-      </button>
+      </motion.button>
 
-      {isOpen && (
-          <div 
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
             className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <div 
+            <motion.div 
               className="bg-gray-900 rounded-xl p-6 max-w-md w-full border border-gray-800 shadow-[0_0_30px_rgba(0,204,255,0.15)]"
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', duration: 0.5 }}
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold gradient-text">Comparte tu experiencia</h3>
-                <button 
+                <motion.button 
                   onClick={() => setIsOpen(false)}
                   className="text-gray-400 hover:text-white rounded-full p-1 hover:bg-gray-800 transition-colors"
+                  whileHover={{ rotate: 90 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                </button>
+                </motion.button>
               </div>
 
               <p className="text-gray-400 mb-6 text-sm">
@@ -145,24 +158,29 @@ export default function TestimonialForm({ onAddTestimonial }: TestimonialFormPro
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4">
-                  <button
+                  <motion.button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="px-4 py-2 border border-gray-600 rounded-md text-gray-300 hover:bg-gray-800 transition-colors hover:scale-105"
+                    className="px-4 py-2 border border-gray-600 rounded-md text-gray-300 hover:bg-gray-800 transition-colors"
+                    whileHover={{ scale: 1.02, borderColor: '#00CCFF' }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     Cancelar
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     type="submit"
-                    className="px-4 py-2 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] rounded-md text-white font-medium hover:scale-105"
+                    className="px-4 py-2 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] rounded-md text-white font-medium"
+                    whileHover={{ scale: 1.05, boxShadow: '0 5px 15px -5px rgba(0, 204, 255, 0.7)' }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     Enviar testimonio
-                  </button>
+                  </motion.button>
                 </div>
               </form>
-            </div>
-          </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

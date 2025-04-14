@@ -85,9 +85,14 @@ function ContactForm({ delay }: ContactFormProps) {
   };
 
   return (
-    <div 
+    <motion.div 
       ref={ref as React.RefObject<HTMLDivElement>}
-      className="p-px bg-gradient-to-br from-[#00CCFF] to-[#9933FF] rounded-xl hover:scale-[1.01]"
+      className="p-px bg-gradient-to-br from-[#00CCFF] to-[#9933FF] rounded-xl"
+      initial="hidden"
+      animate={hasIntersected ? "visible" : "hidden"}
+      variants={formVariants}
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.3 }}
     >
       <div className="bg-glass backdrop-blur-md p-8 rounded-xl shadow-xl">
         <h3 className="font-rajdhani font-bold text-2xl mb-6 text-white">Envíanos un mensaje</h3>
@@ -141,10 +146,13 @@ function ContactForm({ delay }: ContactFormProps) {
             {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
           </div>
           
-          <button
+          <motion.button
             type="submit"
             disabled={isSubmitting}
-            className="w-full px-6 py-3 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] rounded-lg text-white font-medium disabled:opacity-70 shadow-lg shadow-[#00CCFF]/20 hover:shadow-[#9933FF]/30 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full px-6 py-3 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] rounded-lg text-white font-medium disabled:opacity-70 shadow-lg shadow-[#00CCFF]/20 hover:shadow-[#9933FF]/30"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
           >
             {isSubmitting ? (
               <div className="flex items-center justify-center">
@@ -155,10 +163,10 @@ function ContactForm({ delay }: ContactFormProps) {
                 Enviando...
               </div>
             ) : "Enviar mensaje"}
-          </button>
+          </motion.button>
         </form>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -182,9 +190,12 @@ function ContactInfo({ delay }: ContactInfoProps) {
   };
 
   return (
-    <div 
+    <motion.div 
       ref={ref as React.RefObject<HTMLDivElement>}
       className="text-left"
+      initial="hidden"
+      animate={hasIntersected ? "visible" : "hidden"}
+      variants={infoVariants}
     >
       <h3 className="font-rajdhani font-bold text-2xl mb-6 text-white">Contacto directo</h3>
       
@@ -254,7 +265,7 @@ function ContactInfo({ delay }: ContactInfoProps) {
       <div className="mt-4 text-sm text-gray-400">
         <p>Disponibles para proyectos en América Latina, Europa y Norteamérica.</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -287,9 +298,12 @@ export default function ContactSection({ setRef }: ContactSectionProps) {
       <AnimatedShape type={2} className="bottom-[10%] right-[-100px]" delay={2} />
       
       <div className="container mx-auto px-4 py-16 z-10">
-        <div 
+        <motion.div 
           ref={titleRef as React.RefObject<HTMLDivElement>}
           className="text-center mb-16"
+          initial="hidden"
+          animate={titleVisible ? "visible" : "hidden"}
+          variants={titleVariants}
         >
           <h2 className="font-rajdhani font-bold text-3xl md:text-5xl mb-6">
             <span className="gradient-text gradient-border inline-block pb-2">¿Listo para dar el próximo paso?</span>
@@ -298,7 +312,7 @@ export default function ContactSection({ setRef }: ContactSectionProps) {
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Convierte tu visión en una experiencia digital impactante
           </p>
-        </div>
+        </motion.div>
         
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           <ContactForm delay={1} />

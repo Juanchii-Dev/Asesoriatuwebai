@@ -28,34 +28,6 @@ if [ ! -d "node_modules" ] || [ -z "$(ls -A node_modules)" ]; then
   npm install openai
 fi
 
-# Crear el alias para framer-motion (sin modificar archivos)
-mkdir -p node_modules/framer-motion
-
-# Crear un archivo que defina 'motion' para que el código existente funcione
-cat > node_modules/framer-motion/index.js << 'EOL'
-// Alias para framer-motion
-const motion = {
-  div: 'div',
-  button: 'button',
-  span: 'span',
-  p: 'p',
-  svg: 'svg',
-  path: 'path',
-  circle: 'circle',
-  rect: 'rect',
-};
-
-// Mock de AnimatePresence
-const AnimatePresence = ({ children }) => children;
-
-module.exports = {
-  motion,
-  AnimatePresence,
-};
-EOL
-
-echo "✅ Alias para framer-motion creado correctamente"
-
 # Actualizar el archivo chatbot.tsx con el mensaje de bienvenida y la imagen
 cat > client/src/components/ui/chatbot.tsx << 'EOL'
 import { useState, useRef, useEffect } from 'react';
