@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuWeb.ai - Asistente Virtual</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">TuWeb.ai</div>
+            <nav>
+                <ul>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Transformamos tu presencia digital</h1>
+                <p>Somos especialistas en desarrollo web, marketing digital y transformación digital para tu negocio.</p>
+                <a href="#contacto" class="btn-primary">¡Comencemos!</a>
+            </div>
+        </section>
+
+        <section id="servicios" class="servicios">
+            <h2>Nuestros Servicios</h2>
+            <div class="servicios-grid">
+                <div class="servicio-card">
+                    <div class="servicio-icon">🌐</div>
+                    <h3>Desarrollo Web</h3>
+                    <p>Creamos sitios web profesionales, atractivos y funcionales que convierten visitantes en clientes.</p>
+                </div>
+                <div class="servicio-card">
+                    <div class="servicio-icon">📱</div>
+                    <h3>Diseño UX/UI</h3>
+                    <p>Interfaces intuitivas y experiencias de usuario que cautivan y mejoran la conversión.</p>
+                </div>
+                <div class="servicio-card">
+                    <div class="servicio-icon">📈</div>
+                    <h3>Marketing Digital</h3>
+                    <p>Estrategias personalizadas para aumentar tu visibilidad online y atraer clientes potenciales.</p>
+                </div>
+                <div class="servicio-card">
+                    <div class="servicio-icon">🔍</div>
+                    <h3>SEO</h3>
+                    <p>Optimizamos tu presencia en buscadores para que tus clientes te encuentren fácilmente.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="nosotros" class="nosotros">
+            <h2>Sobre Nosotros</h2>
+            <p>En TuWeb.ai combinamos tecnología de vanguardia con estrategias creativas para impulsar el crecimiento de tu negocio en el mundo digital. Nuestro equipo de expertos está comprometido con la innovación y la excelencia.</p>
+        </section>
+
+        <section id="contacto" class="contacto">
+            <h2>Contáctanos</h2>
+            <p>¿Listo para transformar tu presencia digital? Ponte en contacto con nosotros.</p>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="mensaje">Mensaje</label>
+                    <textarea id="mensaje" name="mensaje" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Enviar</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-logo">TuWeb.ai</div>
+            <div class="footer-links">
+                <a href="#servicios">Servicios</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#contacto">Contacto</a>
+            </div>
+            <div class="social-links">
+                <a href="#">Twitter</a>
+                <a href="#">Facebook</a>
+                <a href="#">Instagram</a>
+                <a href="#">LinkedIn</a>
+            </div>
+            <p class="copyright">© 2024 TuWeb.ai - Todos los derechos reservados</p>
+        </div>
+    </footer>
+
+    <!-- Chatbot Widget -->
+    <div id="chatbot-container">
+        <div id="chatbot-button">
+            <img src="../websy-image.jpg" alt="Websy - Asistente Virtual" id="chatbot-avatar">
+        </div>
+        <div id="chatbot-widget" class="hidden">
+            <div id="chatbot-header">
+                <div id="chatbot-title">
+                    <img src="../websy-image.jpg" alt="Websy" class="chatbot-header-avatar">
+                    <span>Websy - Asistente Virtual</span>
+                </div>
+                <button id="chatbot-close">✕</button>
+            </div>
+            <div id="chatbot-messages">
+                <!-- Los mensajes se agregarán dinámicamente aquí -->
+            </div>
+            <div id="chatbot-input-container">
+                <textarea id="chatbot-input" placeholder="Escribe tu mensaje..." rows="1"></textarea>
+                <button id="chatbot-send" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="none" d="M0 0h24v24H0z"/>
+                        <path d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
