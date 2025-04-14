@@ -4,31 +4,6 @@ modules = ["nodejs-20"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Web App Server"
-
-[[workflows.workflow]]
-name = "Web App Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash run.sh"
-waitForPort = 5000
 
 [deployment]
 run = ["sh", "-c", "bash run.sh"]
