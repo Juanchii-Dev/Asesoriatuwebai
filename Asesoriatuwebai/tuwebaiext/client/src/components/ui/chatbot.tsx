@@ -2,19 +2,42 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import * as FiIcons from "react-icons/fi";
-import { useLocation } from 'react-router-dom';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
+  avatar?: string;
 }
 
-interface VisibleSection {
-  id: string;
-  visible: boolean;
-}
+// Mapeo de secciones en inglés a español
+const SECTION_TRANSLATIONS: Record<string, string> = {
+  'hero': 'Inicio',
+  'hero-section': 'Inicio',
+  'services': 'Servicios',
+  'services-section': 'Servicios',
+  'pricing': 'Precios',
+  'pricing-section': 'Precios',
+  'contact': 'Contacto',
+  'contact-section': 'Contacto',
+  'process': 'Proceso',
+  'process-section': 'Proceso',
+  'team': 'Equipo',
+  'team-section': 'Equipo',
+  'testimonials': 'Testimonios',
+  'testimonials-section': 'Testimonios',
+  'impact': 'Impacto',
+  'impact-section': 'Impacto',
+  'tech': 'Tecnologías',
+  'tech-section': 'Tecnologías',
+  'philosophy': 'Filosofía',
+  'philosophy-section': 'Filosofía',
+  'about': 'Nosotros',
+  'about-section': 'Nosotros',
+  'cta': 'Llamada a la acción',
+  'cta-section': 'Llamada a la acción'
+};
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,232 +46,30 @@ export default function Chatbot() {
       id: '1',
       role: 'assistant',
       content: '¡Hola y bienvenido a TuWeb.ai! 👋\n\nSoy Websy, tu asistente virtual, y estoy aquí para ayudarte a explorar nuestros servicios, resolver tus dudas y brindarte toda la información que necesites para que tu negocio crezca en el entorno digital.\n\n¡Comencemos a transformar tu presencia digital juntos! 🚀\n\nSi necesitas algo más, solo avísame. 😊',
-      timestamp: new Date()
+      timestamp: new Date(),
+      avatar: '/images/websy-avatar.png'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const location = useLocation();
-  const [currentPath, setCurrentPath] = useState(location.pathname);
-  const [currentSection, setCurrentSection] = useState<string | null>(null);
-  const [visibleSections, setVisibleSections] = useState<VisibleSection[]>([]);
-  const [lastProcessedMessage, setLastProcessedMessage] = useState<string | null>(null);
+  const [lastCommand, setLastCommand] = useState<string | null>(null);
 
-  // Actualizar la ruta cuando cambia la ubicación
-  useEffect(() => {
-    setCurrentPath(location.pathname);
-  }, [location]);
-
-  // Configurar IntersectionObserver para detectar secciones visibles
-  useEffect(() => {
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      const updatedSections = [...visibleSections];
-      let firstVisibleSection: string | null = null;
-
-      entries.forEach(entry => {
-        const id = entry.target.id;
-        const existingIndex = updatedSections.findIndex(section => section.id === id);
-        
-        if (existingIndex !== -1) {
-          updatedSections[existingIndex].visible = entry.isIntersecting;
-        } else if (id) { // Solo agregar si tiene ID
-          updatedSections.push({ id, visible: entry.isIntersecting });
-        }
-
-        // Encontrar la primera sección visible
-        if (entry.isIntersecting && !firstVisibleSection && id) {
-          firstVisibleSection = id;
-        }
-      });
-
-      setVisibleSections(updatedSections);
-      if (firstVisibleSection) {
-        setCurrentSection(firstVisibleSection);
-      }
-    };
-
-    // Observador con margen para detectar cuando la sección está casi visible
-    const observer = new IntersectionObserver(observerCallback, {
-      threshold: 0.15, // 15% de la sección debe ser visible
-      rootMargin: "0px"
-    });
-
-    // Observar todos los elementos con ID
-    const elements = document.querySelectorAll('[id]');
-    elements.forEach(element => {
-      observer.observe(element);
-    });
-
-    return () => {
-      elements.forEach(element => {
-        observer.unobserve(element);
-      });
-    };
-  }, []);
-
-  // Detectar comandos de navegación y acciones en las respuestas del asistente
-  useEffect(() => {
-    const handleAssistantResponse = async (content: string) => {
-      if (content === lastProcessedMessage) return; // Evitar procesar el mismo mensaje múltiples veces
-      setLastProcessedMessage(content);
-
-      // Buscar patrones como "vamos a [sección]" o "mostrarte [sección]"
-      const navigationPatterns = [
-        /(?:ir|andá|vamos|bajá|vayamos|mostrar|llevarte) (?:a|hacia|hasta) (?:la sección de |la sección |el |la )?([a-zA-Z0-9_-]+)/i,
-        /(?:mostrame|muéstrame|dame|déjame ver) (?:la sección de |la sección |el |la )?([a-zA-Z0-9_-]+)/i
-      ];
-
-      for (const pattern of navigationPatterns) {
-        const match = content.match(pattern);
-        if (match && match[1]) {
-          const targetSection = match[1].toLowerCase().trim();
-          scrollToSection(targetSection);
-          break;
-        }
-      }
-    };
-
-    // Procesar la respuesta más reciente del asistente
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.role === 'assistant') {
-      handleAssistantResponse(lastMessage.content);
-    }
-  }, [messages, lastProcessedMessage]);
-
-  // Función para realizar scroll a una sección específica
-  const scrollToSection = (sectionName: string) => {
-    console.log(`Intentando hacer scroll a la sección: ${sectionName}`);
-    
-    // Limpiar y normalizar el nombre de la sección
-    const normalizedSectionName = sectionName
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/á/g, 'a')
-      .replace(/é/g, 'e')
-      .replace(/í/g, 'i')
-      .replace(/ó/g, 'o')
-      .replace(/ú/g, 'u')
-      .replace(/ñ/g, 'n');
-    
-    // Mapeo de términos comunes a IDs específicos (agregar según necesidad)
-    const commonTermMappings: Record<string, string[]> = {
-      'servicios': ['services-section', 'services', 'servicios', 'servicios-section', 'service-section'],
-      'contacto': ['contact-section', 'contact', 'contacto', 'contacto-section'],
-      'nosotros': ['about-section', 'about', 'about-us', 'nosotros', 'nosotros-section'],
-      'precios': ['pricing-section', 'pricing', 'precios', 'precios-section'],
-      'inicio': ['hero-section', 'hero', 'home', 'inicio', 'inicio-section'],
-      'proceso': ['process-section', 'process', 'proceso', 'proceso-section'],
-      'testimonios': ['testimonials-section', 'testimonials', 'testimonios', 'testimonios-section'],
-      'equipo': ['team-section', 'team', 'equipo', 'equipo-section'],
-      'tecnologias': ['tech-section', 'technologies', 'tecnologias', 'tecnologias-section'],
-      'proyectos': ['projects-section', 'projects', 'proyectos', 'proyectos-section'],
-      'clientes': ['clients-section', 'clients', 'clientes', 'clientes-section']
-    };
-    
-    // Lista de posibles IDs basados en nombres comunes de secciones
-    let possibleIds = [
-      normalizedSectionName,
-      `${normalizedSectionName}-section`,
-      `section-${normalizedSectionName}`,
-    ];
-    
-    // Agregar mapeos específicos si existen
-    for (const [term, mappings] of Object.entries(commonTermMappings)) {
-      if (normalizedSectionName.includes(term)) {
-        possibleIds = [...possibleIds, ...mappings];
-      }
-    }
-    
-    console.log('Posibles IDs a buscar:', possibleIds);
-
-    // Buscar todos los elementos con ID en la página
-    const allElements = document.querySelectorAll('[id]');
-    let foundElement = null;
-
-    // Primero intentar con los IDs exactos
-    for (const id of possibleIds) {
-      foundElement = document.getElementById(id);
-      if (foundElement) {
-        console.log(`Encontrado elemento con ID: ${id}`);
-        break;
-      }
-    }
-
-    // Si no se encuentra, buscar IDs que contengan el nombre de la sección
-    if (!foundElement) {
-      allElements.forEach(element => {
-        const elementId = element.id.toLowerCase();
-        
-        // Verificar si alguno de los términos clave está en el ID
-        let isMatch = elementId.includes(normalizedSectionName);
-        
-        // También verificar si algún término mapeado está en el ID
-        for (const term of Object.keys(commonTermMappings)) {
-          if (normalizedSectionName.includes(term) && elementId.includes(term)) {
-            isMatch = true;
-            break;
-          }
-        }
-        
-        if (isMatch) {
-          foundElement = element;
-          console.log(`Encontrado elemento parcial con ID: ${elementId}`);
-          return;
-        }
-      });
-    }
-
-    // Si se encontró un elemento, hacer scroll
-    if (foundElement) {
-      console.log('Haciendo scroll a:', foundElement.id);
-      foundElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return true;
-    } else {
-      console.log(`No se encontró ninguna sección con el nombre: ${sectionName}`);
-      
-      // Última alternativa: buscar cualquier encabezado que contenga el texto
-      const headers = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-      for (const header of headers) {
-        if (header.textContent?.toLowerCase().includes(normalizedSectionName)) {
-          console.log('Encontrado encabezado que contiene el texto:', header.textContent);
-          header.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          return true;
-        }
-      }
-      
-      return false;
-    }
+  // Función para traducir IDs de sección al español
+  const translateSectionId = (id: string): string => {
+    const normalizedId = id.toLowerCase().replace('-section', '');
+    return SECTION_TRANSLATIONS[normalizedId] || normalizedId;
   };
 
-  // Obtener información sobre las secciones visibles
-  const getVisibleSectionsInfo = () => {
-    // Obtener todos los elementos con ID en la página
-    const allSections = Array.from(document.querySelectorAll('[id]'))
-      .filter(element => element.id)
-      .map(element => {
-        const rect = element.getBoundingClientRect();
-        const isInViewport = 
-          rect.top >= 0 &&
-          rect.left >= 0 &&
-          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-          rect.right <= (window.innerWidth || document.documentElement.clientWidth);
-
-        return {
-          id: element.id,
-          visible: isInViewport,
-          element
-        };
-      });
-
-    const visibleOnes = allSections.filter(section => section.visible);
-    return {
-      all: allSections.map(s => s.id),
-      visible: visibleOnes.map(s => s.id),
-      current: visibleOnes.length > 0 ? visibleOnes[0].id : null
-    };
+  // Función para convertir al español los nombres de las secciones
+  const getSpanishSectionNames = (): string[] => {
+    const elements = document.querySelectorAll('[id]');
+    const sectionIds = Array.from(elements)
+      .map(el => el.id)
+      .filter(id => id && !id.includes('root'));
+    
+    return sectionIds.map(id => translateSectionId(id));
   };
 
   // Scroll to bottom on new messages
@@ -265,6 +86,113 @@ export default function Chatbot() {
     }
   }, [isOpen]);
 
+  // Procesar comandos del chatbot y hacer scroll a secciones
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    
+    if (lastMessage?.role === 'assistant' && lastCommand) {
+      const sectionMatch = /(?:llevar|scrollear|ir|mostrarte) (?:a|hacia) (?:la sección|la parte|el área|el apartado) (?:de )?([\wáéíóúüñ\s-]+)/i.exec(lastCommand);
+      
+      if (sectionMatch && sectionMatch[1]) {
+        const targetSection = sectionMatch[1].trim().toLowerCase();
+        scrollToSection(targetSection);
+        setLastCommand(null);
+      }
+    }
+  }, [messages, lastCommand]);
+
+  // Función para hacer scroll a una sección específica
+  const scrollToSection = (sectionName: string): boolean => {
+    console.log(`Intentando hacer scroll a la sección: ${sectionName}`);
+    
+    // Limpieza y normalización del nombre
+    const normalizedName = sectionName
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/á/g, 'a')
+      .replace(/é/g, 'e')
+      .replace(/í/g, 'i')
+      .replace(/ó/g, 'o')
+      .replace(/ú/g, 'u')
+      .replace(/ñ/g, 'n');
+    
+    // Intentar mapeos de nombres comunes
+    const sectionMappings: Record<string, string[]> = {
+      'inicio': ['hero', 'hero-section', 'home'],
+      'servicios': ['services', 'services-section', 'our-services'],
+      'nosotros': ['about', 'about-section', 'about-us'],
+      'contacto': ['contact', 'contact-section', 'contact-us'],
+      'precios': ['pricing', 'pricing-section', 'prices'],
+      'proceso': ['process', 'process-section', 'our-process'],
+      'equipo': ['team', 'team-section', 'our-team'],
+      'testimonios': ['testimonials', 'testimonials-section'],
+      'impacto': ['impact', 'impact-section'],
+      'tecnologias': ['tech', 'tech-section', 'technologies'],
+      'filosofia': ['philosophy', 'philosophy-section']
+    };
+    
+    // Buscar el mapeo específico o usar el nombre normalizado
+    let targetIds = [normalizedName];
+    
+    // Añadir mapeos si existen
+    Object.entries(sectionMappings).forEach(([key, values]) => {
+      if (normalizedName.includes(key) || key.includes(normalizedName)) {
+        targetIds = [...targetIds, ...values];
+      }
+    });
+    
+    // También probar con el nombre + -section
+    targetIds.push(`${normalizedName}-section`);
+    
+    console.log('Buscando secciones:', targetIds);
+    
+    // Intentar cada ID posible
+    for (const id of targetIds) {
+      const element = document.getElementById(id);
+      if (element) {
+        console.log(`Encontrada sección con ID: ${id}`);
+        // Hacemos scroll con un pequeño tiempo de espera para asegurar que funcione
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        return true;
+      }
+    }
+    
+    // Si no encontramos por ID, buscamos por texto en encabezados
+    const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    for (const heading of headings) {
+      const text = heading.textContent?.toLowerCase() || '';
+      if (text.includes(normalizedName) || normalizedName.includes(text)) {
+        console.log(`Encontrado encabezado con texto: ${text}`);
+        setTimeout(() => {
+          heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        return true;
+      }
+    }
+    
+    // Si todo falla, intentamos elementos que puedan tener el texto
+    const allElements = document.querySelectorAll('*');
+    for (const el of allElements) {
+      if (el.id) continue; // Ya los procesamos antes
+      
+      const text = el.textContent?.toLowerCase() || '';
+      if ((text.includes(normalizedName) || normalizedName.includes(text)) && 
+          text.length < 100 && text.length > 3) {
+        console.log(`Encontrado elemento que contiene: ${text}`);
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        return true;
+      }
+    }
+    
+    console.log(`No se pudo encontrar una sección para: ${sectionName}`);
+    return false;
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     
@@ -280,60 +208,49 @@ export default function Chatbot() {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
-    
+
+    // Verificar comandos directos de navegación
+    const userInput = inputValue.trim().toLowerCase();
+    let isNavigationCommand = false;
+    let targetSection = '';
+
+    // Patrones de navegación
+    const navigationPatterns = [
+      /^(?:llevame|llévame|ir|vamos|andá|mostra|mostrame|muéstrame) (?:a|hacia|hasta) (?:la sección de |la sección |el |la )?([\wáéíóúüñ\s-]+)$/i,
+      /^(?:quiero ver|quiero conocer|necesito ver) (?:la sección de |la sección |el |la )?([\wáéíóúüñ\s-]+)$/i,
+      /^(?:ir a|vamos a) ([\wáéíóúüñ\s-]+)$/i
+    ];
+
+    for (const pattern of navigationPatterns) {
+      const match = userInput.match(pattern);
+      if (match && match[1]) {
+        isNavigationCommand = true;
+        targetSection = match[1].trim();
+        setLastCommand(`llevar a la sección de ${targetSection}`);
+        break;
+      }
+    }
+
+    // Verificar si pregunta por las secciones
+    const isSectionQuery = /^(?:qué|cuáles|cuales|que|dime) (?:secciones|apartados|partes) (?:hay|existen|se ven|tiene|contiene)(?:\?)?$/.test(userInput) ||
+                          /^(?:qué|que) (?:puedo ver|se ve|hay) (?:en la página|en pantalla)(?:\?)?$/.test(userInput);
+
     try {
-      // Verificar si hay comandos directos del usuario para navegación
-      const userInput = inputValue.trim().toLowerCase();
-      let wasNavigationCommand = false;
+      // Construir contexto para el chatbot
+      const systemMessage = {
+        role: 'system' as const,
+        content: `Eres Websy, el asistente virtual de TuWeb.ai. Estás respondiendo a un usuario que está navegando por nuestro sitio web.
+          
+${isNavigationCommand ? `El usuario ha solicitado ir a la sección "${targetSection}". Confirma que lo llevarás allí y describre brevemente qué encontrará en esa sección.` : ''}
 
-      // Patrones de comando de navegación directa
-      const directNavigationPatterns = [
-        /^(?:ir|andá|vamos|bajá|vayamos|mostrar|llevame) (?:a|hacia|hasta) (?:la sección de |la sección |el |la )?([a-zA-Z0-9_-]+)$/i,
-        /^(?:mostrame|muéstrame|dame|déjame ver) (?:la sección de |la sección |el |la )?([a-zA-Z0-9_-]+)$/i
-      ];
+${isSectionQuery ? `El usuario está preguntando por las secciones disponibles en el sitio. Las secciones disponibles son: ${getSpanishSectionNames().join(', ')}. Muestra esta lista en formato numerado.` : ''}
 
-      for (const pattern of directNavigationPatterns) {
-        const match = userInput.match(pattern);
-        if (match && match[1]) {
-          const targetSection = match[1].toLowerCase().trim();
-          wasNavigationCommand = scrollToSection(targetSection);
-          break;
-        }
-      }
-
-      // Comando para mostrar secciones disponibles
-      const sectionQueryPatterns = [
-        /^(?:qué|cuales|que|cuáles|dime) (?:secciones|apartados|partes) (?:hay|existen|se ven|tenemos|están disponibles)(?:\?)?$/i,
-        /^(?:qué|que) (?:se ve|hay|puedo ver) (?:en pantalla|en la pantalla|ahora)(?:\?)?$/i
-      ];
-
-      let isSectionQuery = false;
-      for (const pattern of sectionQueryPatterns) {
-        if (pattern.test(userInput)) {
-          isSectionQuery = true;
-          break;
-        }
-      }
-
-      // Obtener información contextual para el chatbot
-      const sectionsInfo = getVisibleSectionsInfo();
-      
-      // Crear contexto para el asistente
-      const contextMessage: Message = {
-        id: `context-${Date.now()}`,
-        role: 'system',
-        content: `Contexto actual:
-- Ruta actual: ${currentPath}
-- Sección actual: ${currentSection || 'ninguna'}
-- Secciones visibles: ${sectionsInfo.visible.join(', ') || 'ninguna'}
-- Todas las secciones disponibles: ${sectionsInfo.all.join(', ') || 'ninguna'}
-
-${isSectionQuery ? 'El usuario está preguntando por las secciones disponibles. Muestra una lista ordenada de las secciones disponibles en la página actual.' : ''}
-${wasNavigationCommand ? 'El sistema ya ha realizado el scroll a la sección solicitada. Confirma al usuario que ya está viendo esa sección.' : ''}`,
+Tus respuestas deben ser profesionales pero amigables, breves (máximo 3-4 párrafos) y útiles. 
+Usa términos en español, no en inglés, cuando hables de las secciones del sitio.`,
+        id: `system-${Date.now()}`,
         timestamp: new Date()
       };
 
-      // Enviar el mensaje con el contexto
       const response = await fetch('/api/chatbot', {
         method: 'POST',
         headers: {
@@ -341,8 +258,8 @@ ${wasNavigationCommand ? 'El sistema ya ha realizado el scroll a la sección sol
         },
         body: JSON.stringify({
           messages: [
-            ...messages.filter(msg => msg.role !== 'system'), // Filtrar mensajes de sistema anteriores
-            contextMessage, 
+            systemMessage,
+            ...messages.filter(msg => msg.role !== 'system'),
             userMessage
           ].map(msg => ({
             role: msg.role,
@@ -357,11 +274,17 @@ ${wasNavigationCommand ? 'El sistema ya ha realizado el scroll a la sección sol
       
       const data = await response.json();
       
+      // Intentar scroll si es un comando de navegación
+      if (isNavigationCommand) {
+        scrollToSection(targetSection);
+      }
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.message,
-        timestamp: new Date()
+        timestamp: new Date(),
+        avatar: '/images/websy-avatar.png'
       };
       
       setMessages(prev => [...prev, assistantMessage]);
@@ -372,7 +295,8 @@ ${wasNavigationCommand ? 'El sistema ya ha realizado el scroll a la sección sol
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: 'Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta nuevamente más tarde.',
-        timestamp: new Date()
+        timestamp: new Date(),
+        avatar: '/images/websy-avatar.png'
       };
       
       setMessages(prev => [...prev, errorMessage]);
@@ -396,7 +320,7 @@ ${wasNavigationCommand ? 'El sistema ya ha realizado el scroll a la sección sol
 
   return (
     <>
-      {/* Chat button - opposite side to WhatsApp */}
+      {/* Chat button */}
       <motion.button
         onClick={() => setIsOpen(true)}
         className="fixed left-6 bottom-6 w-12 h-12 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] rounded-full flex items-center justify-center shadow-lg z-50 overflow-hidden"
@@ -420,7 +344,7 @@ ${wasNavigationCommand ? 'El sistema ya ha realizado el scroll a la sección sol
             transition={{ duration: 0.3 }}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#00CCFF]/20 to-[#9933FF]/20 px-4 py-3 flex justify-between items-center">
+            <div className="bg-gradient-to-r from-[#00CCFF]/20 to-[#9933FF]/20 px-4 py-3 flex justify-between items-center border-b border-[#2a2a35]">
               <div className="flex items-center">
                 <div className="rounded-full w-8 h-8 mr-2 overflow-hidden">
                   <img src="/images/websy-avatar.png" alt="Websy" className="w-full h-full object-cover" />
@@ -454,8 +378,17 @@ ${wasNavigationCommand ? 'El sistema ya ha realizado el scroll a la sección sol
                 >
                   {message.role === 'assistant' && (
                     <div className="flex items-center mb-2">
-                      <div className="rounded-full w-6 h-6 mr-2 overflow-hidden">
-                        <img src="/images/websy-avatar.png" alt="Websy" className="w-6 h-6 rounded-full object-cover shadow" />
+                      <div className="w-6 h-6 rounded-full overflow-hidden mr-2 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] flex-shrink-0 shadow">
+                        <img 
+                          src="/images/websy-avatar.png" 
+                          alt="Websy" 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.onerror = null;
+                            target.src = '/images/websy.jpg';
+                          }}
+                        />
                       </div>
                       <span className="text-xs text-gray-300 font-medium">Websy</span>
                     </div>
@@ -474,8 +407,17 @@ ${wasNavigationCommand ? 'El sistema ya ha realizado el scroll a la sección sol
                   className="bg-[#2a2a35] p-3 rounded-2xl rounded-tl-none max-w-[85%] mr-auto"
                 >
                   <div className="flex items-center mb-2">
-                    <div className="rounded-full w-6 h-6 mr-2 overflow-hidden">
-                      <img src="/images/websy-avatar.png" alt="Websy" className="w-6 h-6 rounded-full object-cover shadow" />
+                    <div className="w-6 h-6 rounded-full overflow-hidden mr-2 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] flex-shrink-0 shadow">
+                      <img 
+                        src="/images/websy-avatar.png" 
+                        alt="Websy" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = '/images/websy.jpg';
+                        }}
+                      />
                     </div>
                     <span className="text-xs text-gray-300 font-medium">Websy</span>
                   </div>
