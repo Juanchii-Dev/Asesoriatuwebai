@@ -5,39 +5,10 @@ import * as FiIcons from "react-icons/fi";
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  avatar?: string;
 }
-
-// Mapeo de secciones en inglés a español
-const SECTION_TRANSLATIONS: Record<string, string> = {
-  'hero': 'Inicio',
-  'hero-section': 'Inicio',
-  'services': 'Servicios',
-  'services-section': 'Servicios',
-  'pricing': 'Precios',
-  'pricing-section': 'Precios',
-  'contact': 'Contacto',
-  'contact-section': 'Contacto',
-  'process': 'Proceso',
-  'process-section': 'Proceso',
-  'team': 'Equipo',
-  'team-section': 'Equipo',
-  'testimonials': 'Testimonios',
-  'testimonials-section': 'Testimonios',
-  'impact': 'Impacto',
-  'impact-section': 'Impacto',
-  'tech': 'Tecnologías',
-  'tech-section': 'Tecnologías',
-  'philosophy': 'Filosofía',
-  'philosophy-section': 'Filosofía',
-  'about': 'Nosotros',
-  'about-section': 'Nosotros',
-  'cta': 'Llamada a la acción',
-  'cta-section': 'Llamada a la acción'
-};
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -46,31 +17,13 @@ export default function Chatbot() {
       id: '1',
       role: 'assistant',
       content: '¡Hola y bienvenido a TuWeb.ai! 👋\n\nSoy Websy, tu asistente virtual, y estoy aquí para ayudarte a explorar nuestros servicios, resolver tus dudas y brindarte toda la información que necesites para que tu negocio crezca en el entorno digital.\n\n¡Comencemos a transformar tu presencia digital juntos! 🚀\n\nSi necesitas algo más, solo avísame. 😊',
-      timestamp: new Date(),
-      avatar: '/images/websy-avatar.png'
+      timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [lastCommand, setLastCommand] = useState<string | null>(null);
-
-  // Función para traducir IDs de sección al español
-  const translateSectionId = (id: string): string => {
-    const normalizedId = id.toLowerCase().replace('-section', '');
-    return SECTION_TRANSLATIONS[normalizedId] || normalizedId;
-  };
-
-  // Función para convertir al español los nombres de las secciones
-  const getSpanishSectionNames = (): string[] => {
-    const elements = document.querySelectorAll('[id]');
-    const sectionIds = Array.from(elements)
-      .map(el => el.id)
-      .filter(id => id && !id.includes('root'));
-    
-    return sectionIds.map(id => translateSectionId(id));
-  };
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -85,113 +38,6 @@ export default function Chatbot() {
       inputRef.current.focus();
     }
   }, [isOpen]);
-
-  // Procesar comandos del chatbot y hacer scroll a secciones
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    
-    if (lastMessage?.role === 'assistant' && lastCommand) {
-      const sectionMatch = /(?:llevar|scrollear|ir|mostrarte) (?:a|hacia) (?:la sección|la parte|el área|el apartado) (?:de )?([\wáéíóúüñ\s-]+)/i.exec(lastCommand);
-      
-      if (sectionMatch && sectionMatch[1]) {
-        const targetSection = sectionMatch[1].trim().toLowerCase();
-        scrollToSection(targetSection);
-        setLastCommand(null);
-      }
-    }
-  }, [messages, lastCommand]);
-
-  // Función para hacer scroll a una sección específica
-  const scrollToSection = (sectionName: string): boolean => {
-    console.log(`Intentando hacer scroll a la sección: ${sectionName}`);
-    
-    // Limpieza y normalización del nombre
-    const normalizedName = sectionName
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/á/g, 'a')
-      .replace(/é/g, 'e')
-      .replace(/í/g, 'i')
-      .replace(/ó/g, 'o')
-      .replace(/ú/g, 'u')
-      .replace(/ñ/g, 'n');
-    
-    // Intentar mapeos de nombres comunes
-    const sectionMappings: Record<string, string[]> = {
-      'inicio': ['hero', 'hero-section', 'home'],
-      'servicios': ['services', 'services-section', 'our-services'],
-      'nosotros': ['about', 'about-section', 'about-us'],
-      'contacto': ['contact', 'contact-section', 'contact-us'],
-      'precios': ['pricing', 'pricing-section', 'prices'],
-      'proceso': ['process', 'process-section', 'our-process'],
-      'equipo': ['team', 'team-section', 'our-team'],
-      'testimonios': ['testimonials', 'testimonials-section'],
-      'impacto': ['impact', 'impact-section'],
-      'tecnologias': ['tech', 'tech-section', 'technologies'],
-      'filosofia': ['philosophy', 'philosophy-section']
-    };
-    
-    // Buscar el mapeo específico o usar el nombre normalizado
-    let targetIds = [normalizedName];
-    
-    // Añadir mapeos si existen
-    Object.entries(sectionMappings).forEach(([key, values]) => {
-      if (normalizedName.includes(key) || key.includes(normalizedName)) {
-        targetIds = [...targetIds, ...values];
-      }
-    });
-    
-    // También probar con el nombre + -section
-    targetIds.push(`${normalizedName}-section`);
-    
-    console.log('Buscando secciones:', targetIds);
-    
-    // Intentar cada ID posible
-    for (const id of targetIds) {
-      const element = document.getElementById(id);
-      if (element) {
-        console.log(`Encontrada sección con ID: ${id}`);
-        // Hacemos scroll con un pequeño tiempo de espera para asegurar que funcione
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-        return true;
-      }
-    }
-    
-    // Si no encontramos por ID, buscamos por texto en encabezados
-    const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    for (const heading of headings) {
-      const text = heading.textContent?.toLowerCase() || '';
-      if (text.includes(normalizedName) || normalizedName.includes(text)) {
-        console.log(`Encontrado encabezado con texto: ${text}`);
-        setTimeout(() => {
-          heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-        return true;
-      }
-    }
-    
-    // Si todo falla, intentamos elementos que puedan tener el texto
-    const allElements = document.querySelectorAll('*');
-    for (const el of allElements) {
-      if (el.id) continue; // Ya los procesamos antes
-      
-      const text = el.textContent?.toLowerCase() || '';
-      if ((text.includes(normalizedName) || normalizedName.includes(text)) && 
-          text.length < 100 && text.length > 3) {
-        console.log(`Encontrado elemento que contiene: ${text}`);
-        setTimeout(() => {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-        return true;
-      }
-    }
-    
-    console.log(`No se pudo encontrar una sección para: ${sectionName}`);
-    return false;
-  };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -208,60 +54,15 @@ export default function Chatbot() {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
-
-    // Verificar comandos directos de navegación
-    const userInput = inputValue.trim().toLowerCase();
-    let isNavigationCommand = false;
-    let targetSection = '';
-
-    // Patrones de navegación
-    const navigationPatterns = [
-      /^(?:llevame|llévame|ir|vamos|andá|mostra|mostrame|muéstrame) (?:a|hacia|hasta) (?:la sección de |la sección |el |la )?([\wáéíóúüñ\s-]+)$/i,
-      /^(?:quiero ver|quiero conocer|necesito ver) (?:la sección de |la sección |el |la )?([\wáéíóúüñ\s-]+)$/i,
-      /^(?:ir a|vamos a) ([\wáéíóúüñ\s-]+)$/i
-    ];
-
-    for (const pattern of navigationPatterns) {
-      const match = userInput.match(pattern);
-      if (match && match[1]) {
-        isNavigationCommand = true;
-        targetSection = match[1].trim();
-        setLastCommand(`llevar a la sección de ${targetSection}`);
-        break;
-      }
-    }
-
-    // Verificar si pregunta por las secciones
-    const isSectionQuery = /^(?:qué|cuáles|cuales|que|dime) (?:secciones|apartados|partes) (?:hay|existen|se ven|tiene|contiene)(?:\?)?$/.test(userInput) ||
-                          /^(?:qué|que) (?:puedo ver|se ve|hay) (?:en la página|en pantalla)(?:\?)?$/.test(userInput);
-
+    
     try {
-      // Construir contexto para el chatbot
-      const systemMessage = {
-        role: 'system' as const,
-        content: `Eres Websy, el asistente virtual de TuWeb.ai. Estás respondiendo a un usuario que está navegando por nuestro sitio web.
-          
-${isNavigationCommand ? `El usuario ha solicitado ir a la sección "${targetSection}". Confirma que lo llevarás allí y describre brevemente qué encontrará en esa sección.` : ''}
-
-${isSectionQuery ? `El usuario está preguntando por las secciones disponibles en el sitio. Las secciones disponibles son: ${getSpanishSectionNames().join(', ')}. Muestra esta lista en formato numerado.` : ''}
-
-Tus respuestas deben ser profesionales pero amigables, breves (máximo 3-4 párrafos) y útiles. 
-Usa términos en español, no en inglés, cuando hables de las secciones del sitio.`,
-        id: `system-${Date.now()}`,
-        timestamp: new Date()
-      };
-
       const response = await fetch('/api/chatbot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [
-            systemMessage,
-            ...messages.filter(msg => msg.role !== 'system'),
-            userMessage
-          ].map(msg => ({
+          messages: [...messages, userMessage].map(msg => ({
             role: msg.role,
             content: msg.content
           }))
@@ -274,17 +75,11 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
       
       const data = await response.json();
       
-      // Intentar scroll si es un comando de navegación
-      if (isNavigationCommand) {
-        scrollToSection(targetSection);
-      }
-      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.message,
-        timestamp: new Date(),
-        avatar: '/images/websy-avatar.png'
+        timestamp: new Date()
       };
       
       setMessages(prev => [...prev, assistantMessage]);
@@ -295,8 +90,7 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: 'Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta nuevamente más tarde.',
-        timestamp: new Date(),
-        avatar: '/images/websy-avatar.png'
+        timestamp: new Date()
       };
       
       setMessages(prev => [...prev, errorMessage]);
@@ -320,7 +114,7 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
 
   return (
     <>
-      {/* Chat button */}
+      {/* Chat button - opposite side to WhatsApp */}
       <motion.button
         onClick={() => setIsOpen(true)}
         className="fixed left-6 bottom-6 w-12 h-12 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] rounded-full flex items-center justify-center shadow-lg z-50 overflow-hidden"
@@ -330,7 +124,7 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <img src="/images/websy-avatar.png" alt="Websy" className="w-full h-full object-cover" />
+        <img src="/images/websy.jpg" alt="Websy" className="w-full h-full object-cover" />
       </motion.button>
       
       {/* Chat window */}
@@ -344,10 +138,10 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
             transition={{ duration: 0.3 }}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#00CCFF]/20 to-[#9933FF]/20 px-4 py-3 flex justify-between items-center border-b border-[#2a2a35]">
+            <div className="bg-gradient-to-r from-[#00CCFF]/20 to-[#9933FF]/20 px-4 py-3 flex justify-between items-center">
               <div className="flex items-center">
                 <div className="rounded-full w-8 h-8 mr-2 overflow-hidden">
-                  <img src="/images/websy-avatar.png" alt="Websy" className="w-full h-full object-cover" />
+                  <img src="/images/websy.jpg" alt="Websy" className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-white font-medium">Websy - Asistente Virtual</h3>
               </div>
@@ -362,8 +156,8 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
             </div>
             
             {/* Messages container */}
-            <div className="flex-1 overflow-y-auto py-4 px-4 space-y-4 relative">
-              {messages.filter(msg => msg.role !== 'system').map((message) => (
+            <div className="flex-1 overflow-y-auto py-4 px-4 space-y-4">
+              {messages.map((message) => (
                 <motion.div
                   key={message.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -376,23 +170,6 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
                       : "bg-[#2a2a35] mr-auto rounded-tl-none"
                   )}
                 >
-                  {message.role === 'assistant' && (
-                    <div className="flex items-center mb-2">
-                      <div className="w-6 h-6 rounded-full overflow-hidden mr-2 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] flex-shrink-0 shadow">
-                        <img 
-                          src="/images/websy-avatar.png" 
-                          alt="Websy" 
-                          className="w-full h-full object-cover" 
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.onerror = null;
-                            target.src = '/images/websy.jpg';
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-300 font-medium">Websy</span>
-                    </div>
-                  )}
                   <p className="text-white text-sm whitespace-pre-wrap">{message.content}</p>
                   <p className="text-gray-400 text-xs mt-1">
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -406,21 +183,6 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-[#2a2a35] p-3 rounded-2xl rounded-tl-none max-w-[85%] mr-auto"
                 >
-                  <div className="flex items-center mb-2">
-                    <div className="w-6 h-6 rounded-full overflow-hidden mr-2 bg-gradient-to-r from-[#00CCFF] to-[#9933FF] flex-shrink-0 shadow">
-                      <img 
-                        src="/images/websy-avatar.png" 
-                        alt="Websy" 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.onerror = null;
-                          target.src = '/images/websy.jpg';
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-300 font-medium">Websy</span>
-                  </div>
                   <div className="flex space-x-2">
                     <div className="w-2 h-2 rounded-full bg-[#00CCFF] animate-bounce" style={{ animationDelay: '0ms' }}></div>
                     <div className="w-2 h-2 rounded-full bg-[#00CCFF] animate-bounce" style={{ animationDelay: '150ms' }}></div>
