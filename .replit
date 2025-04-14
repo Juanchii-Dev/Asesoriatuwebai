@@ -27,7 +27,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd Asesoriatuwebai && ./start.sh"
+args = "cd Asesoriatuwebai/tuwebaiext && npm run dev"
 waitForPort = 5000
 
 [deployment]

@@ -55,6 +55,34 @@ export interface ChatContextState {
   loadSession: (sessionId: string) => void;
 }
 
+// Traducciones de secciones
+export const SECTION_TRANSLATIONS: Record<string, string> = {
+  'hero': 'Inicio',
+  'hero-section': 'Inicio',
+  'services': 'Servicios',
+  'services-section': 'Servicios',
+  'pricing': 'Precios',
+  'pricing-section': 'Precios',
+  'contact': 'Contacto',
+  'contact-section': 'Contacto',
+  'process': 'Proceso',
+  'process-section': 'Proceso',
+  'team': 'Equipo',
+  'team-section': 'Equipo',
+  'testimonials': 'Testimonios',
+  'testimonials-section': 'Testimonios',
+  'impact': 'Impacto',
+  'impact-section': 'Impacto',
+  'tech': 'Tecnologías',
+  'tech-section': 'Tecnologías',
+  'philosophy': 'Filosofía',
+  'philosophy-section': 'Filosofía',
+  'about': 'Nosotros',
+  'about-section': 'Nosotros',
+  'cta': 'Llamada a la acción',
+  'cta-section': 'Llamada a la acción'
+};
+
 export const useChatbotStore = create<ChatContextState>()(
   persist(
     (set, get) => ({
@@ -177,39 +205,8 @@ export const useChatbotStore = create<ChatContextState>()(
   )
 );
 
-// Hook para analizar sentimiento (simulado, se implementaría con IA real)
-export const analyzeSentiment = (text: string): ChatMessage['sentiment'] => {
-  // Un análisis simple basado en palabras clave
-  const positiveWords = ['excelente', 'genial', 'increíble', 'bueno', 'feliz', 'gracias', 'perfecto'];
-  const negativeWords = ['malo', 'terrible', 'horrible', 'pésimo', 'decepcionado', 'enfadado', 'enojado'];
-  
-  const lowerText = text.toLowerCase();
-  let score = 0;
-  
-  // Contar palabras positivas y negativas
-  positiveWords.forEach(word => {
-    if (lowerText.includes(word)) score += 0.2;
-  });
-  
-  negativeWords.forEach(word => {
-    if (lowerText.includes(word)) score -= 0.2;
-  });
-  
-  // Limitar el score entre -1 y 1
-  score = Math.max(-1, Math.min(1, score));
-  
-  let type: 'positive' | 'negative' | 'neutral' = 'neutral';
-  if (score > 0.2) type = 'positive';
-  if (score < -0.2) type = 'negative';
-  
-  return {
-    type,
-    score: Math.abs(score)
-  };
-};
-
 // Funciones de navegación
-export const scrollToSection = (sectionName: string): boolean => {
+export function scrollToSection(sectionName: string): boolean {
   // Limpiar y normalizar el nombre de sección
   const normalizedName = sectionName
     .toLowerCase()
@@ -277,4 +274,4 @@ export const scrollToSection = (sectionName: string): boolean => {
   
   console.log(`No se encontró una sección para: ${sectionName}`);
   return false;
-};
+}

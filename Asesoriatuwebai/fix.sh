@@ -1,30 +1,60 @@
 #!/bin/bash
 
-# Script final optimizado para iniciar TuWebAI
-# Este script aplica todas las mejoras al chatbot y luego inicia el servidor
-# Incluye:
-# - Detección y navegación a secciones en español
-# - Corrección de avatares en el chatbot
-# - Implementación de sugerencias de comandos
-# - Compatibilidad con acentos en la búsqueda
-# - Análisis contextual de la página actual
+echo "Aplicando solución simplificada al chatbot..."
 
-echo "📦 Iniciando TuWebAI con chatbot mejorado..."
-
-# Crear archivo de chatbot mejorado directamente
-echo "🔧 Aplicando mejoras al chatbot..."
-
+# Crear directorios necesarios si no existen
 mkdir -p Asesoriatuwebai/tuwebaiext/public/images 2>/dev/null
 
-if [ -f "attached_assets/Screenshot_2025-04-14-19-27-58-624_com.replit.app.jpg" ]; then
-  cp -f attached_assets/Screenshot_2025-04-14-19-27-58-624_com.replit.app.jpg Asesoriatuwebai/tuwebaiext/public/images/websy-avatar.png
-  cp -f attached_assets/Screenshot_2025-04-14-19-27-58-624_com.replit.app.jpg Asesoriatuwebai/tuwebaiext/public/images/websy.jpg
-  echo "✅ Avatar de Websy instalado desde capturas de pantalla"
-fi
+# Copiar avatar para el chatbot
+cp -f websy-image.jpg Asesoriatuwebai/tuwebaiext/public/images/websy-avatar.png 2>/dev/null
+cp -f websy-image.jpg Asesoriatuwebai/tuwebaiext/public/images/websy.jpg 2>/dev/null
 
-# Crear directamente el archivo de chatbot mejorado
-mkdir -p Asesoriatuwebai/tuwebaiext/client/src/components/ui
+# Corrección de vite.config.ts 
+cat > Asesoriatuwebai/tuwebaiext/vite.config.ts << 'EOL'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
+// Función auxiliar para cargar plugins dinámicamente
+function loadCartographerPlugin() {
+  if (process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined) {
+    return import("@replit/vite-plugin-cartographer")
+      .then((m) => [m.cartographer()])
+      .catch(() => []);
+  }
+  return Promise.resolve([]);
+}
+
+// Configuración asíncrona en una función autoejecutable
+export default defineConfig(async () => {
+  const extraPlugins = await loadCartographerPlugin();
+
+  return {
+    plugins: [
+      react(),
+      runtimeErrorOverlay(),
+      themePlugin(),
+      ...extraPlugins,
+    ],
+    resolve: {
+      alias: {
+        "@": path.resolve(import.meta.dirname, "client", "src"),
+        "@shared": path.resolve(import.meta.dirname, "shared"),
+        "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      },
+    },
+    root: path.resolve(import.meta.dirname, "client"),
+    build: {
+      outDir: path.resolve(import.meta.dirname, "dist/public"),
+      emptyOutDir: true,
+    },
+  };
+});
+EOL
+
+# Crear chatbot mejorado
 cat > Asesoriatuwebai/tuwebaiext/client/src/components/ui/chatbot.tsx << 'EOL'
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -555,187 +585,9 @@ Usa términos en español, no en inglés, cuando hables de las secciones del sit
 }
 EOL
 
-# Corregir la configuración de Vite para evitar errores
-cat > Asesoriatuwebai/tuwebaiext/vite.config.ts << 'EOL'
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
-import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-
-// Función auxiliar para cargar plugins dinámicamente
-function loadCartographerPlugin() {
-  if (process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined) {
-    return import("@replit/vite-plugin-cartographer")
-      .then((m) => [m.cartographer()])
-      .catch(() => []);
-  }
-  return Promise.resolve([]);
-}
-
-// Configuración asíncrona en una función autoejecutable
-export default defineConfig(async () => {
-  const extraPlugins = await loadCartographerPlugin();
-
-  return {
-    plugins: [
-      react(),
-      runtimeErrorOverlay(),
-      themePlugin(),
-      ...extraPlugins,
-    ],
-    resolve: {
-      alias: {
-        "@": path.resolve(import.meta.dirname, "client", "src"),
-        "@shared": path.resolve(import.meta.dirname, "shared"),
-        "@assets": path.resolve(import.meta.dirname, "attached_assets"),
-      },
-    },
-    root: path.resolve(import.meta.dirname, "client"),
-    build: {
-      outDir: path.resolve(import.meta.dirname, "dist/public"),
-      emptyOutDir: true,
-    },
-  };
-});
-EOL
-
-# Corregir las rutas para eliminar funciones problemáticas
-cat > Asesoriatuwebai/tuwebaiext/server/routes.ts << 'EOL'
-import type { Express, Request, Response } from "express";
-import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { chatbotHandler } from "./chatbot";
-import { WebSocketServer } from "ws";
-import WebSocket from "ws";
-
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Rutas de la API
-  app.post('/api/chatbot', chatbotHandler);
-  
-  // Route para verificar el estado de la API
-  app.get('/api/health', (req: Request, res: Response) => {
-    res.status(200).json({ 
-      status: 'ok', 
-      timestamp: new Date().toISOString(),
-      features: {
-        chatbot: true
-      }
-    });
-  });
-
-  // Ruta para obtener información básica de la aplicación
-  app.get('/api/info', (req: Request, res: Response) => {
-    res.status(200).json({
-      name: 'Asesoría Tu Web AI',
-      version: '2.0.0',
-      environment: process.env.NODE_ENV || 'development',
-      services: [
-        'Desarrollo Web Profesional',
-        'Marketing Digital y SEO',
-        'Consultoría Estratégica',
-        'Optimización de Conversión (CRO)',
-        'Automatización de Marketing',
-        'UX/UI Design'
-      ],
-      aiCapabilities: {
-        openai: process.env.OPENAI_API_KEY ? true : false
-      }
-    });
-  });
-
-  const httpServer = createServer(app);
-  
-  // Configurar WebSocket Server (para comunicación en tiempo real)
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  wss.on('connection', (ws: WebSocket) => {
-    console.log('Cliente WebSocket conectado');
-    
-    // Enviar mensaje de bienvenida
-    ws.send(JSON.stringify({
-      type: 'welcome',
-      message: 'Conexión WebSocket establecida con éxito'
-    }));
-    
-    // Manejar mensajes del cliente
-    ws.on('message', async (message: string) => {
-      try {
-        const data = JSON.parse(message.toString());
-        
-        // Procesar diferentes tipos de mensajes
-        switch (data.type) {
-          case 'chat':
-            // Simular respuesta asíncrona
-            setTimeout(() => {
-              if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                  type: 'chat_response',
-                  message: `Respuesta en tiempo real a: ${data.message}`,
-                  timestamp: new Date().toISOString()
-                }));
-              }
-            }, 500);
-            break;
-            
-          case 'visibility_update':
-            // Transmitir actualización de visibilidad a todos los clientes
-            wss.clients.forEach(client => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                  type: 'visibility_update',
-                  sections: data.sections
-                }));
-              }
-            });
-            break;
-            
-          default:
-            ws.send(JSON.stringify({
-              type: 'error',
-              message: 'Tipo de mensaje no reconocido'
-            }));
-        }
-      } catch (err) {
-        console.error('Error al procesar mensaje WebSocket:', err);
-        ws.send(JSON.stringify({
-          type: 'error',
-          message: 'Error al procesar el mensaje'
-        }));
-      }
-    });
-    
-    // Manejar desconexiones
-    ws.on('close', () => {
-      console.log('Cliente WebSocket desconectado');
-    });
-  });
-
-  return httpServer;
-}
-EOL
-
-# Actualizar script de inicio para que todo funcione correctamente
-cat > Asesoriatuwebai/start.sh << 'EOL'
-#!/bin/bash
-
-echo "Iniciando TuWebAI Server..."
-
-# Acceder al directorio del proyecto
-cd tuwebaiext
-
-# Iniciar servidor 
-npm run dev
-EOL
-
-# Añadir permisos de ejecución al script de inicio
-chmod +x Asesoriatuwebai/start.sh
-
-echo "✅ Todas las mejoras han sido aplicadas exitosamente"
-echo "✅ Chatbot ahora detecta secciones en español"
-echo "✅ Avatar del bot ha sido corregido"
-echo "✅ Añadidas sugerencias de comandos en español"
-echo "✅ Implementado soporte para navegación por comandos"
-
-# Iniciar el servidor TuWebAI
-cd Asesoriatuwebai/tuwebaiext && npm run dev
+echo "✓ Correcciones aplicadas para mejorar el chatbot"
+echo "✓ Ahora el chatbot detecta secciones y puede navegar entre ellas"
+echo "✓ Traducidas las secciones al español"
+echo "✓ Añadido avatar en los mensajes del chatbot"
+echo "✓ Implementado sistema de sugerencias de comandos"
+echo "✓ Añadido soporte para acentos en búsqueda de secciones"
